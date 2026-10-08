@@ -1,0 +1,14 @@
+name: Windows link test
+on: [push, workflow_dispatch]
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Framelift link test (Windows PowerShell 5.1)
+        shell: powershell
+        run: .\test.ps1
