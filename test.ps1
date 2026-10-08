@@ -1,7 +1,8 @@
 # Framelift Windows link test - runs under Windows PowerShell 5.1 on a GitHub Windows runner.
 $ErrorActionPreference = 'Stop'
 $script:fail = 0
-function Check($ok, [string]$msg) { if ($ok) { Write-Host "PASS  $msg" } else { Write-Host "FAIL  $msg"; $script:fail++ } }
+$script:lines = New-Object System.Collections.ArrayList
+function Check($ok, [string]$msg) { $l = $(if ($ok) { "PASS  $msg" } else { "FAIL  $msg" }); Write-Host $l; [void]$script:lines.Add($l); if (-not $ok) { $script:fail++ } }
 Write-Host "PowerShell $($PSVersionTable.PSVersion) ($($PSVersionTable.PSEdition)) on $([Environment]::OSVersion.VersionString)"
 $enc = New-Object Text.UTF8Encoding($false)
 # same shape as C:\Users\Andre\AppData\Roaming\Framelift\relay, with spaces and an accented letter
@@ -63,4 +64,6 @@ Start-Sleep 5
 Check (-not (Get-Process -Id $pid2 -ErrorAction SilentlyContinue)) "helper exits on stop"
 Check (-not (Test-Path (P 'relay.pid'))) "pid file removed"
 Write-Host "--- relay.log"; Get-Content (P 'relay.log')
+$sum = ("PowerShell $($PSVersionTable.PSVersion) on $([Environment]::OSVersion.VersionString)`n" + ($script:lines -join "`n")) -replace '%', '%25' -replace "`r", '' -replace "`n", '%0A'
+Write-Host "::notice title=Framelift results::$sum"
 if ($script:fail) { Write-Host "$($script:fail) check(s) FAILED"; exit 1 } else { Write-Host "ALL PASSED" }
